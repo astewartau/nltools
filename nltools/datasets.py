@@ -22,7 +22,8 @@ __license__ = "MIT"
 import os
 import pandas as pd
 from nltools.data import Brain_Data
-from nilearn.datasets.utils import _get_dataset_dir, _fetch_file
+from nilearn.datasets.utils import get_data_dirs as _get_dataset_dir, _fetch_file
+from nilearn.datasets._utils import fetch_files as _fetch_file
 from pynv import Client
 
 # Optional dependencies
@@ -106,13 +107,19 @@ def download_collection(
     # Get images
     files = []
     for f in metadata["file"]:
-        files.append(
-            _fetch_file(
-                f, data_dir, resume=resume, verbose=verbose, overwrite=overwrite
-            )
-        )
+        # Define the file name (local path), URL, and options dictionary
+        file_info = (f.split("/")[-1], f, {"overwrite": overwrite})
+        files.append(file_info)
 
-    return (metadata, files)
+    # Use fetch_files to download the files
+    downloaded_files = fetch_files(
+        data_dir,
+        files,
+        resume=resume,
+        verbose=verbose,
+    )
+
+    return (metadata, downloaded_files)
 
 
 def fetch_pain(data_dir=None, resume=True, verbose=1):
